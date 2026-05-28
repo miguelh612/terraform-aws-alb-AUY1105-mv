@@ -1,22 +1,22 @@
 # ─── SECURITY GROUP — ALB ──────────────────────────────────────────────────────
 resource "aws_security_group" "alb" {
-  name        = "test01-sg-alb"
+  name        = var.alb_security_group_name
   description = "Permite trafico HTTP entrante al ALB desde Internet"
-  vpc_id      = aws_vpc.main.id
+  vpc_id      = var.vpc_id
 
   ingress {
     description = "HTTP desde Internet"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.public_cidr_block]
   }
 
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.public_cidr_block]
   }
 
   tags = {
@@ -26,16 +26,16 @@ resource "aws_security_group" "alb" {
 
 # ─── APPLICATION LOAD BALANCER ────────────────────────────────────────────────
 resource "aws_lb" "main" {
-  name               = "alb-prueba2"
+  name               = var.alb_name
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.alb.id]
-  subnets            = [aws_subnet.public.id, aws_subnet.public_2.id]
+  subnets            = [var.public_subnet_id, var.public_subnet_2_id]
 
   enable_deletion_protection = false
 
   tags = {
-    Name        = "alb-prueba2"
+    Name        = var.alb_name
     Environment = "dev"
   }
 }
@@ -45,7 +45,7 @@ resource "aws_lb_target_group" "web" {
   name     = "tg-web-prueba2"
   port     = 80
   protocol = "HTTP"
-  vpc_id   = aws_vpc.main.id
+  vpc_id   = var.vpc_id
 
   health_check {
     enabled             = true
@@ -66,7 +66,7 @@ resource "aws_lb_target_group" "web" {
 # ─── REGISTRO DE LA EC2 EN EL TARGET GROUP ────────────────────────────────────
 resource "aws_lb_target_group_attachment" "web" {
   target_group_arn = aws_lb_target_group.web.arn
-  target_id        = aws_instance.web.id
+  target_id        = var.ec2_instance_id
   port             = 80
 }
 
