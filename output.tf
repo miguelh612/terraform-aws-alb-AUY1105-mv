@@ -17,8 +17,3 @@ output "alb_security_group_id" {
   description = "ID del grupo de seguridad asociado al Application Load Balancer"
   value       = aws_security_group.alb_sg.id
 }
-
-output "alb_dns_name" {
-  description = "DNS publico del Application Load Balancer"
-  value       = aws_lb.main.dns_name
-}
